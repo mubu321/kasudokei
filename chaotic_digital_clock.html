@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カス時計</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #808080;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .clock {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #000000;
+            letter-spacing: 0.1em;
+            text-align: center;
+            border: 2px solid #000000;
+            padding: 40px 60px;
+            border-radius: 20px;
+            background: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            .clock {
+                font-size: 3rem;
+                padding: 30px 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .clock {
+                font-size: 2rem;
+                padding: 20px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clock" id="clock">00:00:00</div>
+
+    <script>
+        let currentTime = new Date();
+        let audio;
+
+        // 音声の準備
+        try {
+            audio = new Audio('1.mp3');
+            audio.preload = 'auto';
+        } catch (e) {
+            console.log('音声ファイルが見つかりません');
+        }
+
+        function playTick() {
+            if (audio) {
+                try {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log('音声再生エラー:', e));
+                } catch (e) {
+                    console.log('音声再生エラー:', e);
+                }
+            }
+        }
+
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function updateClock() {
+            const rand = Math.random() * 100;
+            
+            if (rand < 40) {
+                // 40%の確率で時間を戻す
+                currentTime.setSeconds(currentTime.getSeconds() - 1);
+            } else if (rand < 50) {
+                // 10%の確率で時間を止める（何もしない）
+            } else {
+                // 50%の確率で時間を進める
+                currentTime.setSeconds(currentTime.getSeconds() + 1);
+            }
+
+            document.getElementById('clock').textContent = formatTime(currentTime);
+            playTick();
+        }
+
+        // 初期表示
+        document.getElementById('clock').textContent = formatTime(currentTime);
+
+        // 1秒ごとに更新
+        setInterval(updateClock, 1000);
+
+        // 音声再生を有効にするためのユーザーインタラクション
+        document.addEventListener('click', function() {
+            const audios = [tickAudio, stopAudio, reverseAudio];
+            audios.forEach(audio => {
+                if (audio && audio.paused) {
+                    audio.play().then(() => {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }).catch(e => console.log('音声初期化エラー:', e));
+                }
+            });
+        }, { once: true });
+    </script>
+</body>
+</html>
